@@ -2,8 +2,6 @@
 #
 # Lane change simulation
 
-import sys
-sys.path.append('..')
 import os
 from PIL import Image
 import matplotlib as mpl
@@ -47,8 +45,8 @@ def animate(frame_idx):
     ax.clear()
     t0 = time.time()
     # update cars
-    update_agents(all_cars, dt)
-    # update_agents_dubins(all_cars)
+    # update_agents(all_cars, dt)
+    update_agents_dubins(all_cars)
     # draw cars
     draw_cars(all_cars, background)
     # update background
