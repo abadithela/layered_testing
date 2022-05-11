@@ -11,7 +11,7 @@ mpl.use('tkagg')
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import time
-from ipdb import set_trace as st
+from pdb import set_trace as st
 from car import Car
 import numpy as np
 from numpy import cos, sin, tan, sign
@@ -37,6 +37,10 @@ def update_agents(cars, dt):
     for car in all_cars:
         car.update(car.control_input(), dt)
 
+def update_agents_dubins(cars):
+    for car in all_cars:
+        car.update_dubins(not_merged=False, can_merge=False)
+
 def animate(frame_idx):
     # st()
     global background
@@ -44,6 +48,7 @@ def animate(frame_idx):
     t0 = time.time()
     # update cars
     update_agents(all_cars, dt)
+    # update_agents_dubins(all_cars)
     # draw cars
     draw_cars(all_cars, background)
     # update background
