@@ -9,6 +9,7 @@ mpl.use('tkagg')
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import time
+import pdb
 from pdb import set_trace as st
 from car import Car
 import numpy as np
@@ -35,9 +36,32 @@ def update_agents(cars, dt):
     for car in all_cars:
         car.update(car.control_input(), dt)
 
-def update_agents_dubins(cars):
+def update_agents_dubins(all_cars):
     for car in all_cars:
         car.update_dubins(not_merged=False, can_merge=False)
+
+def update_agents_merge(sys_car, tester_cars):
+    not_merged = False
+    merged_x=None
+    can_merge = False
+    if sys_car.state[3] > 37:
+        not_merged = True
+
+    t1x = tester_cars[0].state[2]
+    t2x = tester_cars[1].state[2]
+    sx = sys_car.state[2]
+    # pdb.set_trace()
+    if t1x > sx and t2x < sx: # system car is in-between the two cars in x coords
+        merge_gap = abs(t1x-t2x)
+        if merge_gap > 100:
+            print("merge gap: " + str(merge_gap))
+            can_merge = True
+            merged_x = merge_gap/2
+    for car in tester_cars:
+        car.update_dubins(not_merged=False, can_merge=False, merged_x=None) # Tester cars should keep driving straight
+    # System car should merge if possible
+    # pdb.set_trace()
+    sys_car.update_dubins(not_merged = not_merged, can_merge=can_merge, merged_x=merged_x)
 
 def animate(frame_idx):
     # st()
@@ -46,7 +70,8 @@ def animate(frame_idx):
     t0 = time.time()
     # update cars
     # update_agents(all_cars, dt)
-    update_agents_dubins(all_cars)
+    # update_agents_dubins(all_cars)
+    update_agents_merge(system, tester_cars)
     # draw cars
     draw_cars(all_cars, background)
     # update background
@@ -77,17 +102,23 @@ if not show_axes:
     ax.yaxis.set_visible(False)
 
 # sampling time
-dt = 0.1
+dt = 0.01
 duration = 100
 background = get_background()
 
 # list of agents
 all_cars = []
+tester_cars = []
 
-system = Car('sys', 0, [5,0,20,69], 'red')
-tester = Car('tester', 0, [7,0,20,37], 'blue')
+system = Car('sys', 0, [7,0,20,69], 'red')
+tester1 = Car('tester', 0, [10,0,120,37], 'blue')
+tester2 = Car('tester', 0, [4,0,0,37], 'blue')
+
 all_cars.append(system)
-all_cars.append(tester)
+all_cars.append(tester1)
+all_cars.append(tester2)
+tester_cars.append(tester1)
+tester_cars.append(tester2)
 
 t0 = time.time()
 # st()

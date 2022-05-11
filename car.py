@@ -5,6 +5,8 @@ from scipy.integrate import odeint
 from ftocp import FTOCP
 from nlp import NLP
 from numpy import cos, sin, tan, sign
+import pdb
+
 def in_limits(val, val_min, val_max):
     return max(min(val, val_max), val_min)
 
@@ -30,7 +32,7 @@ class Car():
         self.state = np.array(init_state, dtype='float')
         self.input = None
         self.color = color
-        self.dt = 0.1
+        self.dt = 0.01
 
     def update(self, input, dt):
         in_acc = input[0]
@@ -55,28 +57,30 @@ class Car():
         state_dot = [v_dot, theta_dot, x_dot, y_dot]
         return state_dot
 
-    def update_dubins(self, not_merged, can_merge):
+    def update_dubins(self, not_merged, can_merge, merged_x = None):
     # update the state of the car depending on the control inputs for duration dt
-        self.control_mpc(not_merged=not_merged, can_merge =can_merge)
+        self.control_mpc(not_merged=not_merged, can_merge =can_merge, merged_x=merged_x)
 
     # Helper functions to generate next waypoints:
-    def get_merged_state(self):
-        xG = np.array([self.state[0], self.state[1], self.state[2]+1, self.state[3]+1]) # Maintain heading
+    def get_merged_state(self, merged_x):
+        xG = np.array([self.state[0], self.state[1], self.state[2]+merged_x, self.state[3]-32]) # Maintain heading
         return xG
 
     def get_continue_straight(self):
-        xG = np.array([self.state[0], self.state[1], self.state[2]+1, self.state[3]])
+        dist_traveled = self.state[0]*self.dt*10
+        xG = np.array([self.state[0], self.state[1], self.state[2]+dist_traveled, self.state[3]])
         return xG
 
-    def control_mpc(self, not_merged, can_merge):
+    def control_mpc(self, not_merged, can_merge, merged_x=None):
     # add the controller here! [acc, steering]
         x0 = self.state
         if not_merged and can_merge:
-            xG = self.get_merged_state()
+            xG = self.get_merged_state(merged_x=merged_x)
         else:
             xG = self.get_continue_straight()
+        # pdb.set_trace()
         self.nlmpc(x0, xG) # Controller intitialized and synthesized
-        
+
 
     # Gets called from NLMPC, so the dynamics are re-worded
     # x: [x,y,v,theta]
@@ -93,7 +97,7 @@ class Car():
 
     def nlmpc(self, x0, xg):
         x0 = np.array([x0[2], x0[3], x0[0], x0[1]]) # np.arrays
-        maxTime = 14 # Simulation time
+        maxTime = 10 # Simulation time
         goal = np.array([xg[2], xg[3], xg[0], xg[1]]) # np.array's
 
         # Initialize mpc parameters
@@ -106,9 +110,9 @@ class Car():
     # ======================== Subsection: Nonlinear MPC ==============
     # First solve the nonlinear optimal control problem as a Non-Linear Program (NLP)
         printLevel = 1
-        xub = np.array([15, 15, 15, 15])
-        uub = np.array([10, 0.5])
-        nlp = NLP( N,  Q,  R,  Qf,  goal,  self.dt,  xub, uub, printLevel)
+        xub = np.array([400, 70, 20, 1])
+        uub = np.array([5, 1])
+        nlp = NLP(N, Q, R, Qf, goal, self.dt, xub, uub, printLevel)
         ut  = nlp.solve(x0)
 
         #sys.reset_IC() # Reset initial conditions
