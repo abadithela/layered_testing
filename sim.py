@@ -63,6 +63,7 @@ def update_agents_merge(sys_car, tester_cars):
     # pdb.set_trace()
     sys_car.update_dubins(not_merged = not_merged, can_merge=can_merge, merged_x=merged_x)
 
+
 def animate(frame_idx):
     # st()
     global background
@@ -111,7 +112,7 @@ all_cars = []
 tester_cars = []
 
 system = Car('sys', 0, [7,0,20,69], 'red')
-tester1 = Car('tester', 0, [10,0,120,37], 'blue')
+tester1 = Car('tester', 0, [12,0,120,37], 'blue')
 tester2 = Car('tester', 0, [4,0,0,37], 'blue')
 
 all_cars.append(system)

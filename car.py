@@ -63,11 +63,16 @@ class Car():
 
     # Helper functions to generate next waypoints:
     def get_merged_state(self, merged_x):
-        xG = np.array([self.state[0], self.state[1], self.state[2]+merged_x, self.state[3]-32]) # Maintain heading
+        if self.state[3] > 10:
+            speed = 10
+        else:
+            speed = self.state[3]
+        dist_traveled = 10*self.dt*10
+        xG = np.array([self.state[0], speed, self.state[2]+merged_x, self.state[3]-28]) # Maintain heading
         return xG
 
     def get_continue_straight(self):
-        dist_traveled = self.state[0]*self.dt*10
+        dist_traveled = self.state[3]*self.dt*10
         xG = np.array([self.state[0], self.state[1], self.state[2]+dist_traveled, self.state[3]])
         return xG
 
@@ -110,9 +115,11 @@ class Car():
     # ======================== Subsection: Nonlinear MPC ==============
     # First solve the nonlinear optimal control problem as a Non-Linear Program (NLP)
         printLevel = 1
-        xub = np.array([400, 70, 20, 1])
-        uub = np.array([5, 1])
-        nlp = NLP(N, Q, R, Qf, goal, self.dt, xub, uub, printLevel)
+        xub = np.array([400, 80, 20, 1])
+        uub = np.array([5, 0.5])
+        xlb = np.array([0, 30, -10, -1])
+        ulb = np.array([-5, -0.5])
+        nlp = NLP(N, Q, R, Qf, goal, self.dt, xub, uub, xlb, ulb, printLevel)
         ut  = nlp.solve(x0)
 
         #sys.reset_IC() # Reset initial conditions

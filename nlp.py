@@ -10,21 +10,20 @@ class NLP(object):
 	""" Non-Linear Program
 	"""
 
-	def __init__(self, N, Q, R, Qf, goal, dt, bx, bu, printLevel):
+	def __init__(self, N, Q, R, Qf, goal, dt, bx, bu, lbx, lbu, printLevel):
 		# Define variables
 		self.N    = N
 		self.n    = Q.shape[1]
 		self.d    = R.shape[1]
 		self.bx   = bx
+		self.lx   = lbx
 		self.bu   = bu
+		self.lu   = lbu
 		self.Q    = Q
 		self.Qf   = Qf
 		self.R    = R
 		self.goal = goal
 		self.dt   = dt
-
-		self.bx = bx
-		self.bu = bu
 
 		self.printLevel = printLevel
 
@@ -35,8 +34,10 @@ class NLP(object):
 
 	def solve(self, x0, verbose=False):
 		# Set initial condition + state and input box constraints
-		self.lbx = x0.tolist() + (-self.bx).tolist()*(self.N) + (-self.bu).tolist()*self.N
+		self.lbx = x0.tolist() + (self.lx).tolist()*(self.N) + (self.lu).tolist()*self.N
+		# self.lbx = x0.tolist() + (-1*self.bx).tolist()*(self.N) + (-1*self.bu).tolist()*self.N
 		self.ubx = x0.tolist() + ( self.bx).tolist()*(self.N) + ( self.bu).tolist()*self.N
+		# pdb.set_trace()
 		# Solve nonlinear programm
 		start = time.time()
 		sol = self.solver(lbx=self.lbx, ubx=self.ubx, lbg=self.lbg_dyanmics, ubg=self.ubg_dyanmics)
